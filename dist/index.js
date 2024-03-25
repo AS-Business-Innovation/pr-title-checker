@@ -9842,17 +9842,17 @@ var __webpack_exports__ = {};
 // ESM COMPAT FLAG
 __nccwpck_require__.r(__webpack_exports__);
 
-// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
-var github = __nccwpck_require__(5438);
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var core = __nccwpck_require__(2186);
+// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
+var github = __nccwpck_require__(5438);
 // EXTERNAL MODULE: external "fs"
 var external_fs_ = __nccwpck_require__(7147);
-// EXTERNAL MODULE: external "path"
-var external_path_ = __nccwpck_require__(1017);
 ;// CONCATENATED MODULE: external "node:https"
 const external_node_https_namespaceObject = require("node:https");
 var external_node_https_default = /*#__PURE__*/__nccwpck_require__.n(external_node_https_namespaceObject);
+// EXTERNAL MODULE: external "path"
+var external_path_ = __nccwpck_require__(1017);
 ;// CONCATENATED MODULE: ./dist/index.js
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -9976,7 +9976,10 @@ function getJSON({ configPath, localConfigPath, remoteConfigURL, GitHubConfigOwn
     return __awaiter(this, void 0, void 0, function* () {
         if (localConfigPath) {
             core.info(`Using local config file ${localConfigPath}`);
-            const data = (0,external_fs_.readFileSync)((0,external_path_.join)(process.cwd(), localConfigPath));
+            const finitePath = (0,external_path_.isAbsolute)(localConfigPath)
+                ? localConfigPath
+                : (0,external_path_.join)(process.cwd(), localConfigPath);
+            const data = (0,external_fs_.readFileSync)(finitePath);
             return JSON.parse(data.toString());
         }
         if (remoteConfigURL) {

@@ -1,8 +1,8 @@
-import * as github from "@actions/github";
 import * as core from "@actions/core";
-import { readFileSync } from "fs";
-import { join } from "path";
+import * as github from "@actions/github";
+import {readFileSync} from "fs";
 import https from "node:https";
+import {isAbsolute, join} from "path";
 
 const context = github.context;
 let octokit: ReturnType<typeof github.getOctokit>;
@@ -27,7 +27,7 @@ type ConfigType = {
 };
 
 async function titleCheckFailed({
-  config: { MESSAGES, LABEL, CHECKS },
+  config: {MESSAGES, LABEL, CHECKS},
 }: {
   config: ConfigType;
 }) {
@@ -36,7 +36,7 @@ async function titleCheckFailed({
       core.notice(MESSAGES.notice);
     }
 
-    await addLabel({ name: LABEL.name });
+    await addLabel({name: LABEL.name});
 
     if (CHECKS.alwaysPassCI) {
       core.info(MESSAGES.failure);
@@ -54,7 +54,7 @@ async function titleCheckFailed({
 }
 
 async function createLabel({
-  label: { name, color },
+  label: {name, color},
 }: {
   label: ConfigType["LABEL"];
 }) {
@@ -77,7 +77,7 @@ async function createLabel({
   }
 }
 
-async function addLabel({ name }: { name: string }) {
+async function addLabel({name}: {name: string}) {
   if (name === "") {
     return;
   }
@@ -166,7 +166,10 @@ async function getJSON({
 }): Promise<ConfigType> {
   if (localConfigPath) {
     core.info(`Using local config file ${localConfigPath}`);
-    const data = readFileSync(join(process.cwd(), localConfigPath));
+    const finitePath = isAbsolute(localConfigPath)
+      ? localConfigPath
+      : join(process.cwd(), localConfigPath);
+    const data = readFileSync(finitePath);
     return JSON.parse(data.toString());
   }
   if (remoteConfigURL) {
@@ -268,7 +271,7 @@ const run = async ({
       return;
     }
 
-    let { CHECKS, LABEL, MESSAGES } = config;
+    let {CHECKS, LABEL, MESSAGES} = config;
     LABEL = LABEL || ({} as ConfigType["LABEL"]);
     LABEL.name = LABEL.name || "";
     LABEL.color = LABEL.color || "eee";
@@ -282,18 +285,18 @@ const run = async ({
       for (let j = 0; j < CHECKS.ignoreLabels.length; j++) {
         if (labels[i].name == CHECKS.ignoreLabels[j]) {
           core.info(`Ignoring Title Check for label - ${labels[i].name}`);
-          removeLabel({ labels, name: LABEL.name });
+          removeLabel({labels, name: LABEL.name});
           return;
         }
       }
     }
 
-    await createLabel({ label: LABEL });
+    await createLabel({label: LABEL});
 
     if (CHECKS.prefixes && CHECKS.prefixes.length) {
       for (let i = 0; i < CHECKS.prefixes.length; i++) {
         if (title.startsWith(CHECKS.prefixes[i])) {
-          removeLabel({ labels, name: LABEL.name });
+          removeLabel({labels, name: LABEL.name});
           core.info(MESSAGES.success);
           return;
         }
@@ -303,13 +306,13 @@ const run = async ({
     if (CHECKS.regexp) {
       let re = new RegExp(CHECKS.regexp, CHECKS.regexpFlags || "");
       if (re.test(title)) {
-        removeLabel({ labels, name: LABEL.name });
+        removeLabel({labels, name: LABEL.name});
         core.info(MESSAGES.success);
         return;
       }
     }
 
-    await titleCheckFailed({ config: { LABEL, CHECKS, MESSAGES } });
+    await titleCheckFailed({config: {LABEL, CHECKS, MESSAGES}});
   } catch (error) {
     core.info(error);
   }
@@ -339,5 +342,5 @@ try {
     GitHubConfigToken,
   });
 } catch (e) {
-  handleOctokitError({ passOnOctokitError, error: e });
+  handleOctokitError({passOnOctokitError, error: e});
 }
